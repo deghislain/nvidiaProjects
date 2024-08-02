@@ -62,8 +62,10 @@ if __name__ == "__main__":
                                 ---------------------
                                 {search_result}
                                 ---------------------
-                                Use the tools at your disposals to create a list of links from the search_result content,
-                                then extract the content of each link.
+                                Use the tools at your disposals to create a list of links called websites_links 
+                                from the search_result content, then extract the content of each link.
+                                the websites_links must be of type list and must hold a list of string representing 
+                                the urls of website from the search_result content
             """
 
             rev_resp = write_content(write_prompt)
