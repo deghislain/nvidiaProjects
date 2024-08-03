@@ -2,6 +2,7 @@ from crewai_tools import BaseTool
 from crewai_tools import ScrapeWebsiteTool
 from typing import TypeAlias
 
+
 Vector: TypeAlias = list[str]
 websites_content = ""
 
@@ -17,6 +18,8 @@ class CustomWebScraperTool(BaseTool):
                 s_tool = ScrapeWebsiteTool(website_url=link)
                 websites_content = websites_content + s_tool.run()
             except Exception as ex:
-                print("Error while parsing a link")
+                print("Error while parsing a link", ex)
 
         return websites_content
+
+
