@@ -68,8 +68,8 @@ def get_the_urls(search_result):
         try:
             la = l.split(",", 1)
             l = la[0]
-            l.replace('],', '')
-            l.replace(']', '')
+            l = l.replace('],', '')
+            l = l.replace(']', '')
             references = references + l + '\n'
             urls.add(l)
         except Exception as ex:
