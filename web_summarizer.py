@@ -6,7 +6,7 @@ import streamlit as st
 from tools import CustomWebScraperTool
 import newspaper
 import re
-
+from datetime import date
 
 def search_relevant_content(search_prompt):
     search = DuckDuckGoSearchResults()
@@ -57,6 +57,34 @@ def write_content(write_prompt):
     return agent.run(write_prompt)
 
 
+def summarize_content(sum_prompt):
+    scraper = CustomWebScraperTool()
+    search = GoogleSearchAPIWrapper()
+    writing_tools = [
+        Tool(
+            name=scraper.name,
+            func=scraper.run,
+            description=scraper.description
+        ),
+        Tool(
+            name="search",
+            func=search.run,
+            description="Search Google for recent results.",
+            return_direct=True
+        ),
+
+    ]
+    llm = ChatNVIDIA(model="mistralai/mixtral-8x22b-instruct-v0.1", temperature=0)
+    agent = initialize_agent(
+        tools=writing_tools,
+        agent_type=AgentType.SELF_ASK_WITH_SEARCH,
+        llm=llm,
+        handle_parsing_errors=True,
+        verbose=True
+    )
+    return agent.run(sum_prompt)
+
+
 references = '\n' + '\n' + '\n' + '\n' + '\n' + "References:" + '\n'
 
 
@@ -100,6 +128,13 @@ def parse_search_results(search_result):
     return add_document_sources(pages_content, urls)
 
 
+def store_the_content(content, topic, path):
+    today = str(date.today())
+    f = open(path + today + "_"+topic + ".txt", "w")
+    f.write(content)
+    f.close()
+
+
 if __name__ == "__main__":
     topic = st.text_input("Topic")
     content = ""
@@ -110,6 +145,7 @@ if __name__ == "__main__":
 
     if topic:
         search_result = search_relevant_content(search_prompt)
+        store_the_content(search_result, topic, "doc/search/") # here we store the search result
         search_result = parse_search_results(search_result)
 
         if search_result:
@@ -131,4 +167,6 @@ if __name__ == "__main__":
 
             content = write_content(write_prompt)
             content += references
-            st.write(content)
+            if content:
+                store_the_content(search_result, topic, "doc/content/") # Here we store the written content
+                st.write(content)
