@@ -4,11 +4,15 @@ from langchain_community.tools import Tool, DuckDuckGoSearchResults
 from langchain.utilities import GoogleSearchAPIWrapper
 import streamlit as st
 from tools import CustomWebScraperTool
+from crewai_tools import ScrapeWebsiteTool
 import newspaper
 import re
 from datetime import date
+from langchain_community.utilities import SerpAPIWrapper
 
-def search_relevant_content(search_prompt):
+
+
+def search_relevant_content(s_prompt):
     search = DuckDuckGoSearchResults()
     search_tools = [
         Tool(
@@ -26,10 +30,10 @@ def search_relevant_content(search_prompt):
         handle_parsing_errors=True,
         verbose=True
     )
-    return agent.run(search_prompt)
+    return agent.run(s_prompt)
 
 
-def write_content(write_prompt):
+def write_content(w_prompt):
     scraper = CustomWebScraperTool()
     search = GoogleSearchAPIWrapper()
     writing_tools = [
@@ -54,12 +58,12 @@ def write_content(write_prompt):
         handle_parsing_errors=True,
         verbose=True
     )
-    return agent.run(write_prompt)
+    return agent.run(w_prompt)
 
 
 def summarize_content(sum_prompt):
-    scraper = CustomWebScraperTool()
-    search = GoogleSearchAPIWrapper()
+    scraper = ScrapeWebsiteTool()
+    search = SerpAPIWrapper()
     writing_tools = [
         Tool(
             name=scraper.name,
@@ -85,6 +89,7 @@ def summarize_content(sum_prompt):
     return agent.run(sum_prompt)
 
 
+
 references = '\n' + '\n' + '\n' + '\n' + '\n' + "References:" + '\n'
 
 
@@ -92,14 +97,14 @@ def get_the_urls(search_result):
     global references
     urls = set()
     links = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', search_result)
-    for l in links:
+    for link in links:
         try:
-            la = l.split(",", 1)
-            l = la[0]
-            l = l.replace('],', '')
-            l = l.replace(']', '')
-            references = references + l + '\n'
-            urls.add(l)
+            la = link.split(",", 1)
+            link = la[0]
+            link = link.replace('],', '')
+            link = link.replace(']', '')
+            references = references + link + '\n'
+            urls.add(link)
         except Exception as ex:
             print("Error while retrieving the urls", ex)
     return urls
@@ -130,7 +135,7 @@ def parse_search_results(search_result):
 
 def store_the_content(content, topic, path):
     today = str(date.today())
-    f = open(path + today + "_"+topic + ".txt", "w")
+    f = open(path + today + "_" + topic + ".txt", "w")
     f.write(content)
     f.close()
 
@@ -145,7 +150,7 @@ if __name__ == "__main__":
 
     if topic:
         search_result = search_relevant_content(search_prompt)
-        store_the_content(search_result, topic, "doc/search/") # here we store the search result
+        store_the_content(search_result, topic, "doc/search/")  # here we store the search result
         search_result = parse_search_results(search_result)
 
         if search_result:
@@ -168,5 +173,25 @@ if __name__ == "__main__":
             content = write_content(write_prompt)
             content += references
             if content:
-                store_the_content(search_result, topic, "doc/content/") # Here we store the written content
+                store_the_content(search_result, topic, "doc/content/")  # Here we store the written content
                 st.write(content)
+                sum_prompt = f"""
+                                The following content is about {topic}.
+                                ---------------------
+                                {content}
+                                ---------------------
+                                You are an expert copywriter and content creator. Please use your skills and the tools 
+                                at your disposal to complete the following tasks:
+                                Content Review: Examine this content to ensure that all information are accurate 
+                                and up-to-date.
+                                Content Summarization: Use your exceptional writing skills to summarize this content 
+                                to a 500 words long text. Make sure that it is easy to read and understand for 
+                                a non-technical audience.
+                            
+                   """
+
+                if st.button("Get a summary of this content"):
+                    summary = summarize_content(sum_prompt)
+                    if summary:
+                        st.write(summary)
+                        store_the_content(summary, topic, "doc/summary/")
