@@ -224,7 +224,7 @@ def retrieve_content(topic):
 
 def display_button(content_summary):
     content = ""
-    topic = st.text_input("Topic")
+    topic = st.text_input(":blue[Research Topic]",)
     left, middle, right = st.columns(3)
     if left.button("Start Research", key="leftbt"):
         content = start_research(topic)
