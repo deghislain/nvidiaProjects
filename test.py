@@ -4,6 +4,7 @@ from langchain_community.tools import Tool, DuckDuckGoSearchResults
 from langchain.utilities import GoogleSearchAPIWrapper
 import streamlit as st
 from tools import CustomWebScraperTool
+from crewai_tools import ScrapeWebsiteTool
 import newspaper
 import re
 from datetime import date
@@ -56,11 +57,14 @@ def write_content(w_prompt):
         handle_parsing_errors=True,
         verbose=True
     )
-    return agent.run(w_prompt)
+    content = agent.run(w_prompt)
+    content += references
+    if content:
+        store_the_content(search_result, topic, "doc/content/")
 
 
 def summarize_content(sum_prompt):
-    scraper = CustomWebScraperTool()
+    scraper = ScrapeWebsiteTool()
     search = SerpAPIWrapper()
     writing_tools = [
         Tool(
@@ -138,23 +142,11 @@ def store_the_content(content, topic, path):
 
 
 search_result = ""
-
-
-def get_research_results(topic):
-    global search_result
-    search_prompt = f"""
-                        You are a researcher. Your task is to use the tools at your disposal to search
-                        and return the latest development in {topic}.
-            """
-    if topic:
-        search_result = search_relevant_content(search_prompt)
-        store_the_content(search_result, topic, "doc/search/")  # here we store the search result
-        search_result = parse_search_results(search_result)
-
-    return search_result
+content = ""
 
 
 def get_research_content(search_result, topic):
+    global content
     if search_result:
         write_prompt = f"""
                              The following content is about {topic}.
@@ -172,10 +164,23 @@ def get_research_content(search_result, topic):
                             including any relevant website links.
         """
 
-        return write_content(write_prompt)
+        write_content(write_prompt)
+
+    return content
 
 
-content_summary = ""
+def get_research_results(topic):
+    global search_result
+    search_prompt = f"""
+                        You are a researcher. Your task is to use the tools at your disposal to search
+                        and return the latest development in {topic}.
+            """
+    if topic:
+        search_result = search_relevant_content(search_prompt)
+        store_the_content(search_result, topic, "doc/search/")  # here we store the search result
+        search_result = parse_search_results(search_result)
+
+    return search_result
 
 
 def start_research(topic):
@@ -183,63 +188,32 @@ def start_research(topic):
     return get_research_content(s_result, topic)
 
 
-def get_content_summary(content, topic):
-    global content_summary
-    sum_prompt = f"""
-                                    The following content is about {topic}.
-                                    ---------------------
-                                    {content}
-                                    ---------------------
-                                    You are an expert copywriter and content creator. Please use your skills and the tools 
-                                    at your disposal to complete the following tasks:
-                                    Content Review: Examine this content to ensure that all information are accurate 
-                                    and up-to-date.
-                                    Content Summarization: Use your exceptional writing skills to summarize this content 
-                                    to a 500 words long text. Make sure that it is easy to read and understand for 
-                                    a non-technical audience.
-
-                       """
-    content = retrieve_content(topic)
-    if content and topic:
-        try:
-            content_summary = summarize_content(sum_prompt)
-            if content_summary:
-                store_the_content(content_summary, topic, "doc/summary/")
-                if st.session_state['is_show_summary']:
-                    display_button(content_summary)
-                    st.session_state['is_show_summary'] = False
-                    st.write(content_summary)
-        except Exception as ex:
-            print("Error while getting the summary", ex)
-
-
-def retrieve_content(topic):
-    content = ""
-    today = str(date.today())
-    file = open("doc/content/" + today + "_" + topic + ".txt", "r")
-    for line in file:
-        content += line
-    return content
-
-
-def display_button(content_summary):
-    content = ""
-    topic = st.text_input("Topic")
-    left, middle, right = st.columns(3)
-    if left.button("Start Research", key="leftbt"):
-        content = start_research(topic)
-        content += references
-        if content:
-            middle.button("Show summary", key="middlebt", on_click=get_content_summary, args=[content, topic])
-            store_the_content(search_result, topic, "doc/content/")  # Here we store the written content
-            st.write(content)
-        if content_summary:
-            st.write(content_summary)
-
-
 if __name__ == "__main__":
-    if 'is_show_summary' not in st.session_state:
-        st.session_state['is_show_summary'] = True
-        display_button("")
-    elif st.session_state['is_show_summary']:
-        display_button("")
+    topic = st.text_input("Research Topic")
+    if st.button("Start Research"):
+        if topic:
+            content = start_research(topic)
+            #if content:
+                #store_the_content(search_result, topic, "doc/content/")
+        else:
+            st.write("Please, enter a research topic")
+
+
+
+
+
+
+
+  if left.button("Start Research", key="leftbt"):
+        if topic:
+            content = start_research(topic)
+            if content:
+                right.button("Export content as pdf", key="rightbt")
+                content += references
+                st.write(content)
+                middle.button("Show summary", key="middlebt", on_click=get_content_summary, args=[content, topic])
+                st.write("content_summary")
+            else:
+                st.write("No result found, try a another topic ")
+        else:
+            st.write("Please, enter a research topic")
