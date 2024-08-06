@@ -115,9 +115,11 @@ def add_document_sources(pages_content, urls):
     return pages_content
 
 
-def parse_search_results(search_result):
+def parse_search_results(search_result, additional_urls):
     pages_content = ""
-    urls = get_the_urls(search_result)
+    mod_urls = get_the_urls(search_result)
+    user_urls = get_the_urls(additional_urls)
+    urls = mod_urls.union(user_urls)
     for url in urls:
         try:
             article = newspaper.Article(url)
@@ -140,7 +142,7 @@ def store_the_content(content, topic, path):
 search_result = ""
 
 
-def get_research_results(topic):
+def get_research_results(topic,links):
     global search_result
     search_prompt = f"""
                         You are a researcher. Your task is to use the tools at your disposal to search
@@ -149,7 +151,7 @@ def get_research_results(topic):
     if topic:
         search_result = search_relevant_content(search_prompt)
         store_the_content(search_result, topic, "doc/search/")  # here we store the search result
-        search_result = parse_search_results(search_result)
+        search_result = parse_search_results(search_result, links)
 
     return search_result
 
@@ -178,8 +180,8 @@ def get_research_content(search_result, topic):
 content_summary = ""
 
 
-def start_research(topic):
-    s_result = get_research_results(topic)
+def start_research(topic, links):
+    s_result = get_research_results(topic, links)
     return get_research_content(s_result, topic)
 
 
@@ -225,10 +227,12 @@ def retrieve_content(topic):
 def display_button(content_summary):
     content = ""
     topic = st.text_input(":blue[Research Topic]")
+    links = st.text_area(":blue[Additional sources to consider]", placeholder="Paste your links here")
+
     left, middle, right = st.columns(3)
     if left.button("Start Research", key="leftbt"):
         if topic:
-            content = start_research(topic)
+            content = start_research(topic,links)
             content += references
             if content:
                 middle.button("Show summary", key="middlebt", on_click=get_content_summary, args=[content, topic])
