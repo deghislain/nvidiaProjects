@@ -224,17 +224,20 @@ def retrieve_content(topic):
 
 def display_button(content_summary):
     content = ""
-    topic = st.text_input(":blue[Research Topic]",)
+    topic = st.text_input(":blue[Research Topic]")
     left, middle, right = st.columns(3)
     if left.button("Start Research", key="leftbt"):
-        content = start_research(topic)
-        content += references
-        if content:
-            middle.button("Show summary", key="middlebt", on_click=get_content_summary, args=[content, topic])
-            store_the_content(search_result, topic, "doc/content/")  # Here we store the written content
-            st.write(content)
-        if content_summary:
-            st.write(content_summary)
+        if topic:
+            content = start_research(topic)
+            content += references
+            if content:
+                middle.button("Show summary", key="middlebt", on_click=get_content_summary, args=[content, topic])
+                store_the_content(search_result, topic, "doc/content/")  # Here we store the written content
+                st.write(content)
+            if content_summary:
+                st.write(content_summary)
+        else:
+            st.write(":red[Please, enter a research topic]")
 
 
 if __name__ == "__main__":
