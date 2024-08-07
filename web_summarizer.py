@@ -8,6 +8,7 @@ import newspaper
 import re
 from datetime import date
 from langchain_community.utilities import SerpAPIWrapper
+import pdf_generator as pdf
 
 
 def search_relevant_content(s_prompt):
@@ -236,6 +237,7 @@ def display_button(content_summary):
             content += references
             if content:
                 middle.button("Show summary", key="middlebt", on_click=get_content_summary, args=[content, topic])
+                right.button("Export as pdf", key="rightbt", on_click=pdf.generate_pdf, args=[topic])
                 store_the_content(search_result, topic, "doc/content/")  # Here we store the written content
                 st.write(content)
             if content_summary:
