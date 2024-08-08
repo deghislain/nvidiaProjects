@@ -226,7 +226,7 @@ def retrieve_content(topic):
 
 
 def display_button(content_summary):
-    content = ""
+    #content = ""
     topic = st.text_input(":blue[Research Topic]")
     links = st.text_area(":blue[Additional sources to consider]", placeholder="Paste your links here")
 
