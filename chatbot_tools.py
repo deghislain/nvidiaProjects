@@ -11,6 +11,6 @@ class CustomLoginTool(BaseTool):
     def _run(self, username: str, password: str) -> str:
         global response
         if username is not None:
-            response = requests.get(login_microservice_url, json={'username': f"""{username}""", 'password': 'armelo'})
+            response = requests.get(login_microservice_url, json={'username': f"""{username}""", 'password': f"""{password}"""})
 
         return response.content
