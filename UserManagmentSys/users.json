@@ -1,0 +1,18 @@
+[
+  {
+    "user_id": "5163",
+    "username": "armelo",
+    "password": "armpass",
+    "firstname": "Armelo",
+    "lastname": "Modem",
+    "email": "mel@pm.me"
+  },
+  {
+    "user_id": "2451",
+    "username": "mel",
+    "password": "melpass",
+    "firstname": "deghis",
+    "lastname": "mel",
+    "email": "mel@pm.me"
+  }
+]
