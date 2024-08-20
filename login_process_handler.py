@@ -57,8 +57,8 @@ def process_login(input, response):
         elif status_code == 1:
             chat_history.extend([input, response])
     else:
-        chat_history.extend([input, "You have failed the image verification process, "
-                                    "make sure your camera is on and that you are looking at the camera then try again"])
+        chat_history.extend([input, "You did not pass the image verification process. Please ensure that your camera is activated,"
+                                    "and that you are looking directly at it before attempting again"])
 
     st.session_state['chat_history'] = chat_history
     count = 0
