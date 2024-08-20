@@ -29,7 +29,6 @@ def get_the_login_prompt(human_input):
 
 
 def get_the_model(prompt):
-
     memory = ConversationBufferMemory(memory_key="chat_history")
 
     llm = ChatNVIDIA(model="meta/llama3-8b-instruct", temperature=0)
@@ -42,7 +41,7 @@ def get_the_model(prompt):
     return llm_chain
 
 
-input = st.chat_input("type your message here")
+input = st.chat_input("Say hi to start a new conversation")
 if input:
     status_code = 1
     login_prompt = get_the_login_prompt(input)
