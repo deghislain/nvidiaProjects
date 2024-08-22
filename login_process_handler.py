@@ -36,6 +36,9 @@ def db_verification(password):
 
 #Need a better way to compare 2 images
 def image_verification():
+    if st.session_state['process_status'] >= 1:
+        return True
+
     cam = VideoCapture(0)
     result, image = cam.read()
     if result:
@@ -43,6 +46,7 @@ def image_verification():
         s = ssim(local_image, image, channel_axis=2)
         print("similarity  ", s)
         if s > 0.60:
+            st.session_state['process_status'] = 1
             return True
         else:
             return False
@@ -72,12 +76,3 @@ def process_login(input, response):
                     "and that you are looking directly at it before attempting again"])
 
     st.session_state['chat_history'] = chat_history
-    count = 0
-    for m in chat_history:
-        if count % 2 == 0:
-            output = st.chat_message("user")
-            output.write(m)
-        else:
-            output = st.chat_message("assistant")
-            output.write(m)
-        count += 1

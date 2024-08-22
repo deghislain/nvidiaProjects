@@ -1,31 +1,31 @@
 from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory
-from langchain_core.prompts import PromptTemplate
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 import login_process_handler as lpl
 import streamlit as st
+import user_prompts as up
+import re
 
 login_microservice_url = "http://127.0.0.1:8080/login"
 
 
-def get_the_login_prompt(human_input):
-    if 'chat_history' not in st.session_state:
-        st.session_state['chat_history'] = []
-
+def display_chat_history():
     chat_history = st.session_state['chat_history']
-    template = f"""
-               You are chatbot responsible for managing the authentication process. Please follow these steps 
-               to authenticate the user:
-               Request Username: Start by asking the user to provide their username.
-               Request Password: Once the username is provided, ask the user to enter their password.
-               Ensure a smooth user experience by providing clear instructions and feedback throughout the process.
-               Be concise.
+    count = 0
+    for m in chat_history:
+        if count % 2 == 0:
+            output = st.chat_message("user")
+            output.write(m)
+        else:
+            output = st.chat_message("assistant")
+            output.write(m)
+        count += 1
 
-           {chat_history}
-           Human: {human_input}
-           Chatbot:"""
-
-    return PromptTemplate(input_variables=["chat_history", "human_input"], template=template)
+def select_process(input):
+    if re.search('login', input):
+        return "login"
+    elif re.search('new account', input):
+        return "registration"
 
 
 def get_the_model(prompt):
@@ -42,9 +42,26 @@ def get_the_model(prompt):
 
 
 input = st.chat_input("Say hi to start a new conversation")
+if 'process_status' not in st.session_state:
+    st.session_state['process_status'] = 0
 if input:
-    status_code = 1
-    login_prompt = get_the_login_prompt(input)
-    llm_chain = get_the_model(login_prompt)
-    response = llm_chain.predict(human_input=input)
-    lpl.process_login(input, response)
+    if select_process(input) == "login" or st.session_state['process_status'] == 2:
+        login_prompt = up.get_the_login_prompt(input)
+        llm_chain = get_the_model(login_prompt)
+        response = llm_chain.predict(human_input=input)
+        try:
+            lpl.process_login(input, response)
+        except Exception as ex:
+            chat_history = st.session_state['chat_history']
+            chat_history.extend([input, "Error during the authentication process. Please, try again later"])
+        st.session_state['process_status'] = 2
+    elif select_process(input) == "registration":
+        print("registration")
+    else:
+        welcome_prompt = up.get_the_welcome_prompt(input)
+        llm_chain = get_the_model(welcome_prompt)
+        response = llm_chain.predict(human_input=input)
+        chat_history = st.session_state['chat_history']
+        chat_history.extend([input, response])
+
+    display_chat_history()
