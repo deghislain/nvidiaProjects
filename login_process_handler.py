@@ -6,7 +6,7 @@ import streamlit as st
 import requests
 from cv2 import VideoCapture
 from skimage.metrics import structural_similarity as ssim
-import hashlib
+import utilities as util
 
 login_microservice_url = "http://127.0.0.1:8080/login"
 
@@ -20,15 +20,9 @@ def extract_username(response):
         return False
 
 
-def hash_password(password):
-    hashed_password = hashlib.sha256(password.encode("utf-8")).hexdigest()
-
-    return hashed_password
-
-
 def db_verification(password):
     username = st.session_state['username']
-    hashed_password = hash_password(password)
+    hashed_password = util.hash_password(password)
     response = requests.get(login_microservice_url,
                             json={'username': f"""{username}""", 'password': f"""{hashed_password}"""})
     return response

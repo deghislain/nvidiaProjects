@@ -5,6 +5,7 @@ import login_process_handler as lpl
 import streamlit as st
 import user_prompts as up
 import re
+import registration_process_handler as rph
 
 login_microservice_url = "http://127.0.0.1:8080/login"
 
@@ -20,6 +21,7 @@ def display_chat_history():
             output = st.chat_message("assistant")
             output.write(m)
         count += 1
+
 
 def select_process(input):
     if re.search('login', input):
@@ -54,9 +56,23 @@ if input:
         except Exception as ex:
             chat_history = st.session_state['chat_history']
             chat_history.extend([input, "Error during the authentication process. Please, try again later"])
+            print("An error occurred during your login", ex)
         st.session_state['process_status'] = 2
-    elif select_process(input) == "registration":
-        print("registration")
+    elif select_process(input) == "registration" or st.session_state['process_status'] == 3:
+        reg_prompt = up.get_the_registration_prompt(input)
+        llm_chain = get_the_model(reg_prompt)
+        response = llm_chain.predict(human_input=input)
+        try:
+            result = rph.create_new_account(input, response)
+            if result:
+                chat_history = st.session_state['chat_history']
+                chat_history.extend([input, "Congratulation for the creation of your new account"])
+            st.session_state['process_status'] = 3
+        except Exception as ex:
+            chat_history = st.session_state['chat_history']
+            chat_history.extend([input, "Error during the creation of your new account. Please, try again later"])
+            print("An error occurred during your new account creation", ex)
+
     else:
         welcome_prompt = up.get_the_welcome_prompt(input)
         llm_chain = get_the_model(welcome_prompt)
