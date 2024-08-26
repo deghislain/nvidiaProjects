@@ -47,24 +47,19 @@ def create_new_account(input, response):
     if re.search('please choose a unique username', previous_response):
         if 'username' not in st.session_state:
             st.session_state['username'] = input
-    elif (re.search('please provide your first name', previous_response)
-          or re.search('please enter your first name', previous_response)):
+    elif re.search('^Thank.*please.*first name.$', previous_response):
         if 'firstname' not in st.session_state:
             st.session_state['firstname'] = input
-    elif (re.search('please provide your last name', previous_response)
-          or re.search('please enter your last name', previous_response)):
+    elif re.search('^Thank.*please.*last name.$', previous_response):
         if 'lastname' not in st.session_state:
             st.session_state['lastname'] = input
-    elif (re.search('please provide your email address', previous_response)
-          or re.search('please enter your email address', previous_response)):
+    elif re.search('^Thank.*please.*email address.$', previous_response):
         if 'email' not in st.session_state:
             st.session_state['email'] = input
-    elif (re.search('please provide your phone number', previous_response)
-          or re.search('please enter your phone number', previous_response)):
+    elif re.search('^Thank.*please.*phone number.$', previous_response):
         if 'phone_number' not in st.session_state:
             st.session_state['phone_number'] = input
-    elif (re.search('please provide your address', previous_response)
-          or re.search('please enter your address', previous_response)):
+    elif re.search('^Thank.*please.*address.$', previous_response):
         if 'address' not in st.session_state:
             st.session_state['address'] = input
     elif re.search('please create a secure password', previous_response):
