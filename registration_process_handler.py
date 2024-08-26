@@ -44,27 +44,30 @@ def create_new_account(input, response):
         st.session_state['previous_response'] = response
     chat_history = st.session_state['chat_history']
 
-    if re.search('Your desired username is', response):
+    if re.search('please choose a unique username', previous_response):
         if 'username' not in st.session_state:
             st.session_state['username'] = input
-    elif re.search('What is your first name?', previous_response):
+    elif (re.search('please provide your first name', previous_response)
+          or re.search('please enter your first name', previous_response)):
         if 'firstname' not in st.session_state:
             st.session_state['firstname'] = input
-    elif re.search('What is your last name?', previous_response):
+    elif (re.search('please provide your last name', previous_response)
+          or re.search('please enter your last name', previous_response)):
         if 'lastname' not in st.session_state:
             st.session_state['lastname'] = input
-    elif re.search('What is your email address', previous_response):
+    elif (re.search('please provide your email address', previous_response)
+          or re.search('please enter your email address', previous_response)):
         if 'email' not in st.session_state:
             st.session_state['email'] = input
-    elif re.search('What is your phone number', previous_response):
+    elif (re.search('please provide your phone number', previous_response)
+          or re.search('please enter your phone number', previous_response)):
         if 'phone_number' not in st.session_state:
             st.session_state['phone_number'] = input
-    elif re.search('What is your address?', previous_response):
+    elif (re.search('please provide your address', previous_response)
+          or re.search('please enter your address', previous_response)):
         if 'address' not in st.session_state:
             st.session_state['address'] = input
-    elif ((re.search('Please enter your password:', previous_response) or
-          re.search('What is your password?', previous_response)) or
-          re.search('Step 7: Request Password', previous_response)):
+    elif re.search('please create a secure password', previous_response):
         if store_user(input).status_code == 200:
             return True
 

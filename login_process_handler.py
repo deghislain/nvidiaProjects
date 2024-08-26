@@ -1,6 +1,4 @@
-import os
 import re
-
 import cv2
 import streamlit as st
 import requests
@@ -30,7 +28,8 @@ def db_verification(password):
 
 #Need a better way to compare 2 images
 def image_verification():
-    if st.session_state['process_status'] >= 1:
+    if 'image_similarity' in st.session_state and st.session_state['image_similarity'] > 0.60:
+        print("image_verification is True")
         return True
 
     cam = VideoCapture(0)
@@ -40,10 +39,11 @@ def image_verification():
         s = ssim(local_image, image, channel_axis=2)
         print("similarity  ", s)
         if s > 0.60:
-            st.session_state['process_status'] = 1
+            if 'image_similarity' not in st.session_state:
+                st.session_state['image_similarity'] = s
             return True
-        else:
-            return False
+
+    return False
 
 
 def process_login(input, response):
@@ -59,7 +59,8 @@ def process_login(input, response):
         if extract_username(response):
             st.session_state['username'] = input
         if status_code == 200:
-            chat_history.extend([input, "Authentication successfully completed"])
+            chat_history.extend([input, "Authentication successfully completed. Say hi to start a new conversation.."])
+            st.session_state['process_status'] = 4
         elif status_code == 404:
             chat_history.extend([input, "Invalid username or password"])
         elif status_code == 1:
