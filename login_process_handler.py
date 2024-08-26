@@ -10,9 +10,7 @@ login_microservice_url = "http://127.0.0.1:8080/login"
 
 
 def extract_username(response):
-    if re.search('provide your password', response):
-        return True
-    elif re.search('enter your password', response):
+    if re.search('provide your password', response) or re.search('enter your password', response):
         return True
     else:
         return False
