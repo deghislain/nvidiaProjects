@@ -48,7 +48,6 @@ input = st.chat_input("Say hi to start a new conversation")
 if 'process_status' not in st.session_state:
     st.session_state['process_status'] = 0
 if input:
-    print("login in progress ", input)
     if select_process(input) == "login" or st.session_state['process_status'] == 2:
         login_prompt = up.get_the_login_prompt(input)
         llm_chain = get_the_model(login_prompt)
@@ -67,7 +66,6 @@ if input:
             # In case of error we reset the process
             st.session_state['process_status'] = 0
     elif select_process(input) == "registration" or st.session_state['process_status'] == 3:
-        print("registration in progress ", input)
         reg_prompt = up.get_the_registration_prompt(input)
         llm_chain = get_the_model(reg_prompt)
         response = llm_chain.predict(human_input=input)
@@ -90,7 +88,6 @@ if input:
             print("An error occurred during your new account creation", ex)
 
     else:
-        print("welcome in progress ", input)
         welcome_prompt = up.get_the_welcome_prompt(input)
         llm_chain = get_the_model(welcome_prompt)
         response = llm_chain.predict(human_input=input)

@@ -27,7 +27,6 @@ def db_verification(password):
 #Need a better way to compare 2 images
 def image_verification():
     if 'image_similarity' in st.session_state and st.session_state['image_similarity'] > 0.60:
-        print("image_verification is True")
         return True
 
     cam = VideoCapture(0)
