@@ -26,7 +26,7 @@ def display_chat_history():
 def select_process(input):
     if re.search('login', input):
         return "login"
-    elif re.search('new account', input) or re.search('register', input):
+    elif re.search('(new account|register)', input):
         return "registration"
 
 
@@ -49,6 +49,7 @@ if 'process_status' not in st.session_state:
     st.session_state['process_status'] = 0
 if input:
     if select_process(input) == "login" or st.session_state['process_status'] == 2:
+        print("loging process start with input ", input)
         login_prompt = up.get_the_login_prompt(input)
         llm_chain = get_the_model(login_prompt)
         response = llm_chain.predict(human_input=input)
@@ -66,6 +67,7 @@ if input:
             # In case of error we reset the process
             st.session_state['process_status'] = 0
     elif select_process(input) == "registration" or st.session_state['process_status'] == 3:
+        print("registration process start with input ", input)
         reg_prompt = up.get_the_registration_prompt(input)
         llm_chain = get_the_model(reg_prompt)
         response = llm_chain.predict(human_input=input)
@@ -88,6 +90,7 @@ if input:
             print("An error occurred during your new account creation", ex)
 
     else:
+        print("welcome process start with input ", input)
         welcome_prompt = up.get_the_welcome_prompt(input)
         llm_chain = get_the_model(welcome_prompt)
         response = llm_chain.predict(human_input=input)
