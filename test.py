@@ -7,9 +7,10 @@ from tools import CustomWebScraperTool
 import newspaper
 import re
 from datetime import date
-from langchain_openai import ChatOpenAI
 #from langchain_community.utilities import SerpAPIWrapper
 import pdf_generator as pdf
+from groq import Groq
+from langchain_openai import ChatOpenAI
 import os
 
 
@@ -52,7 +53,6 @@ def write_content(w_prompt):
 
     ]
     llm = ChatNVIDIA(model="mistralai/mistral-7b-instruct-v0.3", temperature=0)
-
     agent = initialize_agent(
         tools=writing_tools,
         agent_type=AgentType.SELF_ASK_WITH_SEARCH,
@@ -65,7 +65,7 @@ def write_content(w_prompt):
 
 def summarize_content(sum_prompt):
     scraper = CustomWebScraperTool()
-    search = GoogleSearchAPIWrapper()
+    search = DuckDuckGoSearchResults()
     writing_tools = [
         Tool(
             name=scraper.name,
@@ -80,7 +80,7 @@ def summarize_content(sum_prompt):
         ),
 
     ]
-    #llm = ChatNVIDIA(model="mistralai/mixtral-8x22b-instruct-v0.1", temperature=0)
+    #llm = ChatNVIDIA(model="meta/llama-3.1-405b-instruct", temperature=0)
     llm = ChatOpenAI(
         openai_api_base="https://api.groq.com/openai/v1",
         openai_api_key=os.environ['GROQ_API_KEY'],
@@ -88,6 +88,8 @@ def summarize_content(sum_prompt):
         temperature=0,
         max_tokens=1000,
     )
+
+
     agent = initialize_agent(
         tools=writing_tools,
         agent_type=AgentType.SELF_ASK_WITH_SEARCH,
@@ -198,20 +200,14 @@ def start_research(topic, links):
 
 def get_content_summary(topic):
     content = retrieve_content(topic)
+    print("****************************",content)
     global content_summary
     sum_prompt = f"""
-                        You are an expert copywriter and content creator. Please use your skills and the tools 
-                        at your disposal to complete the following 2 tasks:
-                        Content Review: Examine the text below to ensure that all information are accurate 
-                        and up-to-date.
-                        Content Summarization: Use your exceptional writing skills to summarize the text below 
-                        as a bullets point list. 
-                        Make sure it is easy to read and understand 
-                        for a non-technical audience.
+                        Summarize the text below as a bullet point list. 
+                    Text: {content} 
 
-                        Here is the text: {content}
                        """
-    content = retrieve_content(topic)
+
     if content and topic:
         try:
             content_summary = summarize_content(sum_prompt)
